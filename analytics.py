@@ -4,20 +4,32 @@ from fetch_api import get_info_stock
 
 data = get_info_stock("GOOG")
 
-def display_graph(**indicators):
-    i = 0
-    for indicator, w in indicators['dat'].items():
-        data[indicator] = data['Close'].rolling(window=w).mean()
+class Display_Graph:
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(data['Close'], label='Close Price', color='blue')
-    for indicator, w in indicators['dat'].items():
-        plt.plot(data[indicator], label=f'{w}-Day {indicators["tag"]}', color=indicators["colours"][i])
-        i += 1
-    plt.title(indicators["title"])
-    plt.legend()
-    plt.show()
+    def __init__(self, title):
+        self.__data = ["Date","Open","High","Low","Close","Volume","Dividends","Stock Splits"]
+        plt.figure(figsize=(18, 8))
+        plt.title(title)
 
-display_graph(title="Simple Moving Average (SMA)", dat={"SMA_20":20,"SMA_50":50}, colours=["red","green"], tag="SMA")
+    def add_data(self, dat):
+        if dat not in self.__data:
+            raise Exception("Invalid data")
+        plt.plot(data[dat], label=f'{dat} Price', color='blue')
 
-# TO-DO: More effective using a class and setting each method to a different indicator.
+    def add_SMA(self, dat, **windows): # Windows -> {size : colour}
+        if dat not in self.__data:
+            raise Exception("Invalid data")
+        for _, size in windows.items():
+            data[f"SMA_{size}"] = data[dat].rolling(window=size).mean()
+        for colour, size in windows.items():
+            plt.plot(data[f"SMA_{size}"], label=f'{size}-Day SMA', color=colour)
+
+    def show(self):
+        plt.legend()
+        plt.show()
+
+graph = Display_Graph("Simple Moving Average (SMA)")
+graph.add_SMA("Close",red=20,green=50)
+graph.add_SMA("Close",orange=100)
+graph.add_data("High")
+graph.show()
